@@ -30,15 +30,25 @@ module.exports = function (app) {
 	.post((req, res, next) => {
 		db.postThread(req, res, next);
 	})
-	.put((req, res, next) => {})
-	.delete((req, res) => {});
+	.put((req, res, next) => {
+		db.reportThread(req, res, next);
+	})
+	.delete((req, res, next) => {
+		db.deleteThread(req, res, next);
+	});
 
 
   app.route('/api/replies/:board')
-	.get((req, res, next) => {})
+	.get((req, res, next) => {
+		db.getOneThread(req, res, next);
+	})
 	.post((req, res, next) => {
 		db.postReply(req, res, next);
 	})
-	.put((req, res, next) => {})
-	.delete((req, res, next) => {});
+	.put((req, res, next) => {
+		db.reportComment(req, res, next);
+	})
+	.delete((req, res, next) => {
+		db.deleteComment(req, res, next);
+	});
 };

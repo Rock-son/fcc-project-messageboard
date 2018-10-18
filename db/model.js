@@ -16,7 +16,7 @@ const ReplySchema = new Schema({
 		type: Date, default: new Date()
 	},
 	delete_password: {
-		type: String, trim: true
+		type: String, required: true,
 	},
 	reported: {
 		type: Boolean, default: false
@@ -25,17 +25,20 @@ const ReplySchema = new Schema({
 ReplySchema.pre("save", function a(next) {
 	const reply = this;
 	this.bumped_on = new Date();
+	if (reply.isNew) {
+		return bcrypt.genSalt(10, (err, salt) => {
+			if (err) { return next(err); }
 
-	return bcrypt.genSalt(10, (err, salt) => {
-		if (err) { return next(err); }
+			return bcrypt.hash(reply.delete_password, salt, null, (errB, hash) => {
+				if (errB) { return next(errB); }
 
-		return bcrypt.hash(reply.delete_password, salt, null, (errB, hash) => {
-			if (errB) { return next(errB); }
-
-			reply.delete_password = hash;
-			return next(); // i.e. saves the model
+				reply.delete_password = hash;
+				return next(); // i.e. saves the model
+			});
 		});
-	});
+	} else {
+		next();
+	}
 });
 ReplySchema.pre("update", function a(next) {
 	this.bumped_on = new Date();
@@ -71,16 +74,20 @@ const MessageBoardSchema = new Schema({
 MessageBoardSchema.pre("save", function a(next) {
 	const messageBoard = this;
 	this.bumped_on = new Date();
-	return bcrypt.genSalt(10, (err, salt) => {
-		if (err) { return next(err); }
+	if (messageBoard.isNew) {
+		return bcrypt.genSalt(10, (err, salt) => {
+			if (err) { return next(err); }
 
-		return bcrypt.hash(messageBoard.delete_password, salt, null, (errB, hash) => {
-			if (errB) { return next(errB); }
+			return bcrypt.hash(messageBoard.delete_password, salt, null, (errB, hash) => {
+				if (errB) { return next(errB); }
 
-			messageBoard.delete_password = hash;
-			return next(); // i.e. saves the model
+				messageBoard.delete_password = hash;
+				return next(); // i.e. saves the model
+			});
 		});
-	});
+	} else{
+		next();
+	}
 });
 
 MessageBoardSchema.methods.compareThreadPassword = function b(candidatePassword, callback) {
@@ -92,10 +99,11 @@ MessageBoardSchema.methods.compareThreadPassword = function b(candidatePassword,
 	});
 };
 
-MessageBoardSchema.methods.compareReplyPassword = function b(candidatePassword, replyId, callback) {
+MessageBoardSchema.methods.compareReplyPassword = function c(candidatePassword, replyId, callback) {
 	const thread = this;
-	const delete_password = thread.replies.id(replyId).delete_password;
-	bcrypt.compare(candidatePassword, delete_password, (err, isMatch) => {
+	const reply = thread.replies.id(replyId);
+
+	bcrypt.compare(candidatePassword, reply.delete_password, (err, isMatch) => {
 		if (err) { return callback(err); }
 
 		return callback(null, isMatch);
