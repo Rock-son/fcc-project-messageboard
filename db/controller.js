@@ -6,7 +6,7 @@ const { Threads } = require("./model");
 exports.getThreads = function(req, res, next) {
 	const { board } = req.params;
 
-	Threads.find({board}).sort({'bumped_on': -1}).limit(10).exec((err, results) => {
+	Threads.find({ board }).sort({'bumped_on': -1}).limit(10).exec((err, results) => {
 		if (err) { return next(err); }
 
 		const result = results.map(item => ({
@@ -27,7 +27,7 @@ exports.getOneThread = function(req, res, next) {
 	const { board } = req.params;
 	const { thread_id } = req.query;
 
-	Threads.findById(thread_id, '_id board text created_on bumped_on replies').exec((err, doc) => {
+	Threads.findById(thread_id, '_id board text created_on bumped_on replies reported').exec((err, doc) => {
 		if (err) { return next(err); }
 
 		return res.status(200).send(doc);
@@ -43,11 +43,11 @@ exports.postThread = function(req, res, next) {
 		return res.status(400).send({ error: "All fields are mandatory!" })
 	}
 	// FIND BOARD AND INSERT THREAD, IF THREAD EXISTS -> REDIRECT /b/:board
-	Threads.findOne({ board }).exec((err, result) => {
+	Threads.find({ board }).exec((err, result) => {
 		if (err) { return next(err); }
 
-		if ( (result || {}).text === text) {
-			return res.redirect(`/b/${board}`)
+		if ( result.filter(item => item.text === text).length ) {
+			return res.status(303).redirect(`/b/${board}`)
 		}
 		const newThread = new Threads({
 			board,
@@ -58,7 +58,7 @@ exports.postThread = function(req, res, next) {
 		newThread.save(function(err, doc) {
 			if (err) { return next(err); }
 
-			return res.redirect(`/b/${doc.board}`);
+			return res.status(302).redirect(`/b/${doc.board}`);
 		});
 	});
 };
