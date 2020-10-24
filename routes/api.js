@@ -18,7 +18,7 @@ var mongoose = require("mongoose");
 var db = require("../db/controller");
 
 mongoose.Promise = global.Promise;
-mongoose.connect(process.env.DB, { useNewUrlParser: true, autoIndex: false });
+mongoose.connect(process.env.DB, { useNewUrlParser: true, autoIndex: false, useUnifiedTopology: true });
 mongoose.set('useFindAndModify', false);
 
 module.exports = function (app) {

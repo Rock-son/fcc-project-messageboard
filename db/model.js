@@ -21,6 +21,13 @@ const ReplySchema = new Schema({
 	reported: {
 		type: Boolean, default: false
 	}
+},
+{ 
+	writeConcern: {
+		w: 'majority',
+		j: true,
+		wtimeout: 1000
+	}
 });
 ReplySchema.pre("save", function a(next) {
 	const reply = this;
@@ -68,6 +75,13 @@ const MessageBoardSchema = new Schema({
 	},
 	replies: {
 		type: [ ReplySchema ], trim: true, default: []
+	}
+},
+{ 
+	writeConcern: {
+		w: 'majority',
+		j: true,
+		wtimeout: 1000
 	}
 });
 
